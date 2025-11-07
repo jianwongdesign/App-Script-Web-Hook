@@ -1,0 +1,40 @@
+function doPost(e) {
+  try {
+    // Parse incoming data
+    var data = JSON.parse(e.postData.contents);
+    Logger.log("Incoming Data: " + JSON.stringify(data, null, 2));
+
+    // Open the Google Sheet
+    var sheet = SpreadsheetApp.openById("1ma9tY9ZjNfFK2m-DiEg21BgxwFOyBh3qKc4sd-w9ncA").getSheetByName("Sheet1");
+
+    // Initialize variables
+    var name = "N/A";
+    var phone = "N/A";
+    var email = "N/A";
+    var enquiry = "N/A";
+
+    // Extract data from user_input_data array
+    var userInput = data.user_input_data || [];
+    userInput.forEach(function(item) {
+      if (item.question.includes("address")) name = item.answer;
+      if (item.question.includes("phone number")) phone = item.answer;
+      if (item.question.includes("Email")) email = item.answer;
+      if (item.question.includes("help")) enquiry = item.answer;
+    });
+
+    // Capture timestamp
+    var timestamp = new Date();
+
+    // Append the data to Google Sheets
+    sheet.appendRow([name, phone, email, enquiry, timestamp]);
+
+    // Return success response
+    return ContentService.createTextOutput(JSON.stringify({status: "success", message: "Data added successfully"}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    // Log error
+    Logger.log("Error: " + error);
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
