@@ -1,0 +1,68 @@
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    Logger.log("Incoming Data: " + JSON.stringify(data, null, 2));
+
+    var sheet = SpreadsheetApp.openById("1UTk12R0cuPIPGyHyyHAf6pFZ6_YZapdTguWd9lEDAck").getSheetByName("LeadRaw");
+
+    // Initialize variables
+    var name = "N/A";
+    var email = "N/A";
+    var contact = "N/A";
+    var budget = "N/A";
+    var property_type = "N/A";
+    var property_status = "N/A";
+    var style = "N/A";
+    var size = "N/A";
+    var collection_date = "N/A";
+    var remark = "N/A";
+
+    var userInput = data.user_input_data || [];
+
+    userInput.forEach(function(item) {
+      const q = item.question.toLowerCase().trim();
+
+      if (q.includes("name")) name = item.answer;
+      else if (q.includes("email")) email = item.answer;
+      else if (q.includes("phone") || q.includes("contact")) contact = item.answer;
+      else if (q.includes("budget")) budget = item.answer;
+      else if (q.includes("property type")) property_type = item.answer;
+      else if (q.includes("property status")) property_status = item.answer;
+      else if (q.includes("style")) style = item.answer;
+      else if (q.includes("area") || q.includes("size")) size = item.answer;
+      else if (q.includes("collection")) collection_date = item.answer;
+      else if (q.includes("remark")) remark = item.answer;
+
+      // Optional: log what was matched
+      Logger.log(`Matched question: "${q}" -> ${item.answer}`);
+    });
+
+    // Timestamp
+    var timestamp = new Date();
+
+    // Write to sheet
+    sheet.appendRow([
+      name,
+      email,
+      contact,
+      budget,
+      property_type,
+      property_status,
+      style,
+      size,
+      collection_date,
+      remark,
+      timestamp
+    ]);
+
+    return ContentService.createTextOutput(
+      JSON.stringify({ status: "success", message: "Data added successfully" })
+    ).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    Logger.log("Error: " + error);
+    return ContentService.createTextOutput(
+      JSON.stringify({ status: "error", message: error.toString() })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+}
